@@ -1,10 +1,10 @@
 package io.gatling.interview.handler
 
-import io.gatling.interview.repository.ComputerRepository
 import cats.effect.Sync
-import io.gatling.interview.command.{ComputerCommand, ListComputers}
-import io.gatling.interview.console.Console
 import cats.implicits._
+import io.gatling.interview.command.{ComputerCommand, FetchComputer, ListComputers}
+import io.gatling.interview.console.Console
+import io.gatling.interview.repository.ComputerRepository
 
 class ComputerHandler[F[_]](computerRepository: ComputerRepository[F], console: Console[F])(implicit
     F: Sync[F]
@@ -16,13 +16,14 @@ class ComputerHandler[F[_]](computerRepository: ComputerRepository[F], console: 
         for {
           computers <- computerRepository.fetchAll()
           output = computers
-            .map { c =>
-              val introduced = c.introduced.map(d => s", introduced: ${d.toString}").getOrElse("")
-              val discontinued =
-                c.discontinued.map(d => s", discontinued: ${d.toString}").getOrElse("")
-              s"- [${c.id.toString}] ${c.name}$introduced$discontinued"
-            }
+            .map { c => c.toString }
             .mkString("\n")
+          _ <- console.println(output)
+        } yield ()
+      case FetchComputer(id) =>
+        for {
+          computer <- computerRepository.fetch(id)
+          output = computer.fold("No computer found")(c => c.toString)
           _ <- console.println(output)
         } yield ()
     }

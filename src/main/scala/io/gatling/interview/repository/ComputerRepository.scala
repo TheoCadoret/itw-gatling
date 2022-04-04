@@ -28,7 +28,9 @@ class ComputerRepository[F[_]: ContextShift](filePath: Path, blocker: Blocker)(i
       computers <- F.fromEither(decode[Seq[Computer]](json))
     } yield computers
 
-  def fetch(id: Long): F[Computer] = ???
+  def fetch(id: Long): F[Option[Computer]] = {
+    fetchAll().map(computers => computers.find(computer => computer.id.equals(id)))
+  }
 
   def insert(computer: Computer): F[Unit] = ???
 }

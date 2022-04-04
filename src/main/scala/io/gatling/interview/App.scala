@@ -12,7 +12,7 @@ final class App[F[_]: ContextShift: Timer](implicit F: ConcurrentEffect[F]) {
 
   private val logger = Slf4jLogger.getLogger[F]
 
-  def program(args: List[String]): F[Unit] =
+  def program(args: List[String]): F[Unit] = {
     Blocker[F].use { blocker =>
       val repository = new ComputerRepository(ComputerRepository.DefaultComputersFilePath, blocker)
       val console = new Console[F]
@@ -27,4 +27,5 @@ final class App[F[_]: ContextShift: Timer](implicit F: ConcurrentEffect[F]) {
         _ <- handler.handle(command)
       } yield ()
     }
+  }
 }
