@@ -4,7 +4,9 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class ConcatSpec extends AnyWordSpec with Matchers {
-  def concat(opt1: Option[String], opt2: Option[String]): Option[String] = ???
+  def concat(opt1: Option[String], opt2: Option[String]): Option[String] = {
+    opt1.flatMap(first => opt2.map(second => first + second))
+  }
 
   "concat function" should {
     "concat both content when both exist" in {
