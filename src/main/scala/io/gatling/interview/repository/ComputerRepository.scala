@@ -1,14 +1,14 @@
 package io.gatling.interview.repository
 
-import io.gatling.interview.model.Computer
 import cats.effect.{Blocker, ContextShift, Sync}
+import cats.implicits._
+import io.circe.parser.decode
+import io.circe.syntax._
+import io.gatling.interview.model.Computer
 import io.gatling.interview.repository.ComputerRepository.ComputersFileCharset
 
 import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Files, Path, Paths}
-
-import io.circe.parser.decode
-import cats.implicits._
 
 object ComputerRepository {
   val DefaultComputersFilePath: Path = Paths.get("computers.json")
@@ -29,8 +29,17 @@ class ComputerRepository[F[_]: ContextShift](filePath: Path, blocker: Blocker)(i
     } yield computers
 
   def fetch(id: Long): F[Option[Computer]] = {
-    fetchAll().map(computers => computers.find(computer => computer.id.equals(id)))
+    fetchAll()
+      .map(computers =>
+        computers.find(computer => computer.id.equals(id)))
   }
 
-  def insert(computer: Computer): F[Unit] = ???
+  def insert(newComputer: Computer): F[Unit] = {
+    fetchAll()
+      .map(computers => computers.appended(newComputer))
+      .map(computers => computers.asJson)
+      .flatMap(json => blocker.blockOn(F.delay {
+        Files.write(filePath, json.toString().getBytes(ComputersFileCharset))
+      }))
+  }
 }
