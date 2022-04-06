@@ -1,5 +1,7 @@
 package io.gatling.interview.command
 
+import cats.data._
+import cats.implicits._
 import io.gatling.interview.model.Computer
 
 import java.time.LocalDate
@@ -17,33 +19,36 @@ object ComputerCommand {
 }
 
 object ComputorValidator {
-  def validateComputer(args: List[String]): Either[Exception, Computer] = {
-    validateId(args.headOption)
-      .flatMap(id => validateName(args.lift(1))
-        .flatMap(name => validateDate(args.lift(2))
-          .flatMap(introduced => validateDate(args.lift(3))
-            .map(discontinued =>
-              Computer(id, name, introduced, discontinued)
-            ))))
+  def validateComputer(args: List[String]): ValidatedNel[Exception, Computer] = {
+    (
+      validateId(args.headOption),
+      validateName(args.lift(1)),
+      validateDate(args.lift(2)),
+      validateDate(args.lift(3)),
+      )
+      .mapN[Computer](Computer.apply)
   }
 
-  def validateId(idCadndidate: Option[String]): Either[Exception, Long] = {
+  def validateId(idCadndidate: Option[String]): ValidatedNel[Exception, Long] = {
     idCadndidate.toRight(new IllegalArgumentException("Id should be defined"))
-      .flatMap(it => try Right[Exception, Long](it.toLong) catch {
-        case NonFatal(_) => Left(new IllegalArgumentException("Id should be a long"))
-      })
+      .flatMap(id =>
+        try Right[Exception, Long](id.toLong) catch {
+          case NonFatal(_) => Left(new IllegalArgumentException("Id should be a long"))
+        }
+      ).toValidatedNel
   }
 
-  def validateName(nameCandidate: Option[String]): Either[Exception, String] = {
-    nameCandidate.toRight(new IllegalArgumentException("Name should not be blank or empty"))
+  def validateName(nameCandidate: Option[String]): ValidatedNel[Exception, String] = {
+    nameCandidate.toRight(new IllegalArgumentException("Name should not be blank or empty")).toValidatedNel
   }
 
-  def validateDate(date: Option[String]): Either[Exception, Option[LocalDate]] = {
-    if (date.isEmpty) Right(None)
-    else Try.apply(LocalDate.parse(date.fold("")(it => it)))
-      .toEither
-      .map(it => Option.apply(it))
-      .left.map(_ => new IllegalArgumentException("Date should be defined as YYYY-MM-DD"))
+  def validateDate(date: Option[String]): ValidatedNel[Exception, Option[LocalDate]] = {
+    if (date.isEmpty) None.validNel
+    else
+      Try.apply(LocalDate.parse(date.fold("")(it => it)))
+        .toEither
+        .map(it => Option.apply(it))
+        .left.map(_ => new IllegalArgumentException("Date should be defined as YYYY-MM-DD")).toValidatedNel
   }
 }
 

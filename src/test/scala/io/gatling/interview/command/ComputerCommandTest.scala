@@ -40,29 +40,29 @@ class ComputerCommandTest extends AnyWordSpec with Inside with should.Matchers {
     "should fail when no name given" in {
       val computerEither = ComputorValidator.validateComputer(List(id))
 
-      computerEither.isLeft shouldBe true
+      computerEither.isInvalid shouldBe true
     }
 
     "should fail when no id given" in {
       val computerEither = ComputorValidator.validateComputer(List())
 
-      computerEither.isLeft shouldBe true
+      computerEither.isInvalid shouldBe true
     }
 
     "should fail when Id not Long" in {
       val computerEither = ComputorValidator.validateComputer(List("dvgz", name, introducedString, discontinuedString))
 
-      computerEither.isLeft shouldBe true
+      computerEither.isInvalid shouldBe true
     }
     "should fail when introduced date not in proper format" in {
       val computerEither = ComputorValidator.validateComputer(List(id, name, "emogdoz", discontinuedString))
 
-      computerEither.isLeft shouldBe true
+      computerEither.isInvalid shouldBe true
     }
     "should fail when discontinued date not in proper format" in {
       val computerEither = ComputorValidator.validateComputer(List(id, name,introducedString,"zrsvz"))
 
-      computerEither.isLeft shouldBe true
+      computerEither.isInvalid shouldBe true
     }
   }
 }
