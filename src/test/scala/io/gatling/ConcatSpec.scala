@@ -5,7 +5,10 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class ConcatSpec extends AnyWordSpec with Matchers {
   def concat(opt1: Option[String], opt2: Option[String]): Option[String] = {
-    opt1.flatMap(first => opt2.map(second => first + second))
+    for {
+      str1 <- opt1
+      str2 <- opt2
+    } yield str1 + str2
   }
 
   "concat function" should {
