@@ -11,11 +11,11 @@ object Computer {
 }
 
 final case class Computer(
-                           id: Long,
-                           name: String,
-                           introduced: Option[LocalDate],
-                           discontinued: Option[LocalDate]
-                         ) {
+    id: Long,
+    name: String,
+    introduced: Option[LocalDate],
+    discontinued: Option[LocalDate]
+) {
   override def toString: String = {
     val introducedStr = introduced.map(d => s", introduced: ${d.toString}").getOrElse("")
     val discontinuedStr = discontinued.map(d => s", discontinued: ${d.toString}").getOrElse("")

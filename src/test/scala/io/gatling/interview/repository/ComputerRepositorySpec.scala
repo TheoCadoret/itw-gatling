@@ -93,7 +93,6 @@ class ComputerRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matcher
       }
   }
 
-
   "ComputerRepository#insert" should "fail if Id already exist in db" in {
     val newComputer = Computer(
       id = 2,

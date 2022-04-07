@@ -7,7 +7,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import java.time.LocalDate
 
-
 class ComputerCommandTest extends AnyWordSpec with Inside with should.Matchers {
 
   "computer validation" should {
@@ -16,7 +15,8 @@ class ComputerCommandTest extends AnyWordSpec with Inside with should.Matchers {
     val introducedString = "2016-01-26"
     val discontinuedString = "2016-01-27"
     "should return computer when params are valid" in {
-      val computerEither = ComputorValidator.validateComputer(List(id, name, introducedString, discontinuedString))
+      val computerEither =
+        ComputerValidator.validateComputer(List(id, name, introducedString, discontinuedString))
 
       val computer = computerEither.getOrElse(fail("either was not Right!"))
       computer.id shouldBe 3
@@ -28,7 +28,7 @@ class ComputerCommandTest extends AnyWordSpec with Inside with should.Matchers {
     }
 
     "should return computer without dates when not given " in {
-      val computerEither = ComputorValidator.validateComputer(List(id, name))
+      val computerEither = ComputerValidator.validateComputer(List(id, name))
 
       val computer = computerEither.getOrElse(fail("either was not Right!"))
       computer.id shouldBe 3
@@ -38,29 +38,32 @@ class ComputerCommandTest extends AnyWordSpec with Inside with should.Matchers {
     }
 
     "should fail when no name given" in {
-      val computerEither = ComputorValidator.validateComputer(List(id))
+      val computerEither = ComputerValidator.validateComputer(List(id))
 
       computerEither.isInvalid shouldBe true
     }
 
     "should fail when no id given" in {
-      val computerEither = ComputorValidator.validateComputer(List())
+      val computerEither = ComputerValidator.validateComputer(List())
 
       computerEither.isInvalid shouldBe true
     }
 
     "should fail when Id not Long" in {
-      val computerEither = ComputorValidator.validateComputer(List("dvgz", name, introducedString, discontinuedString))
+      val computerEither =
+        ComputerValidator.validateComputer(List("dvgz", name, introducedString, discontinuedString))
 
       computerEither.isInvalid shouldBe true
     }
     "should fail when introduced date not in proper format" in {
-      val computerEither = ComputorValidator.validateComputer(List(id, name, "emogdoz", discontinuedString))
+      val computerEither =
+        ComputerValidator.validateComputer(List(id, name, "emogdoz", discontinuedString))
 
       computerEither.isInvalid shouldBe true
     }
     "should fail when discontinued date not in proper format" in {
-      val computerEither = ComputorValidator.validateComputer(List(id, name,introducedString,"zrsvz"))
+      val computerEither =
+        ComputerValidator.validateComputer(List(id, name, introducedString, "zrsvz"))
 
       computerEither.isInvalid shouldBe true
     }

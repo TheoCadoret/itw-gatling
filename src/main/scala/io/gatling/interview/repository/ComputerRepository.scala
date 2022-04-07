@@ -15,8 +15,8 @@ object ComputerRepository {
   private val ComputersFileCharset: Charset = StandardCharsets.UTF_8
 }
 
-class ComputerRepository[F[_] : ContextShift](filePath: Path, blocker: Blocker)(implicit
-                                                                                F: Sync[F]
+class ComputerRepository[F[_]: ContextShift](filePath: Path, blocker: Blocker)(implicit
+    F: Sync[F]
 ) {
 
   def fetchAll(): F[Seq[Computer]] =
@@ -44,10 +44,17 @@ class ComputerRepository[F[_] : ContextShift](filePath: Path, blocker: Blocker)(
   def insert(newComputer: Computer): F[Unit] = {
     for {
       computers <- fetchAll()
-      computers <- computers.find(computer => computer.id.equals(newComputer.id))
+      computers <- computers
+        .find(computer => computer.id.equals(newComputer.id))
         .fold(
           F.pure(computers)
-        )(_ => F.raiseError[Seq[Computer]](new IllegalArgumentException(s"A computer with id ${newComputer.id.toString} already exists")))
+        )(_ =>
+          F.raiseError[Seq[Computer]](
+            new IllegalArgumentException(
+              s"A computer with id ${newComputer.id.toString} already exists"
+            )
+          )
+        )
         .map(computers => computers.appended(newComputer))
         .map(computers => computers.asJson)
       _ <- blocker.blockOn(F.delay {
