@@ -22,9 +22,8 @@ class ComputerHandler[F[_]](computerRepository: ComputerRepository[F], console: 
         } yield ()
       case FetchComputer(id) =>
         for {
-          computer <- computerRepository.fetch(id)
-          output = computer.fold("No computer found")(c => c.toString)
-          _ <- console.println(output)
+          computer <- computerRepository.fetchOne(id)
+          _ <- console.println(computer.toString)
         } yield ()
       case InsertComputer(computer) =>
         for {

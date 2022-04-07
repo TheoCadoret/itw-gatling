@@ -15,8 +15,8 @@ object ComputerRepository {
   private val ComputersFileCharset: Charset = StandardCharsets.UTF_8
 }
 
-class ComputerRepository[F[_]: ContextShift](filePath: Path, blocker: Blocker)(implicit
-    F: Sync[F]
+class ComputerRepository[F[_] : ContextShift](filePath: Path, blocker: Blocker)(implicit
+                                                                                F: Sync[F]
 ) {
 
   def fetchAll(): F[Seq[Computer]] =
@@ -28,18 +28,31 @@ class ComputerRepository[F[_]: ContextShift](filePath: Path, blocker: Blocker)(i
       computers <- F.fromEither(decode[Seq[Computer]](json))
     } yield computers
 
-  def fetch(id: Long): F[Option[Computer]] = {
-    fetchAll()
-      .map(computers =>
-        computers.find(computer => computer.id.equals(id)))
+  def fetchOne(id: Long): F[Computer] = {
+    for {
+      computers <- fetchAll()
+      computer <- computers
+        .find(computer => computer.id.equals(id))
+        .fold(
+          F.raiseError[Computer](
+            new IllegalArgumentException(s"No computer matching given id : ${id.toString}")
+          )
+        )(it => F.pure(it))
+    } yield computer
   }
 
   def insert(newComputer: Computer): F[Unit] = {
-    fetchAll()
-      .map(computers => computers.appended(newComputer))
-      .map(computers => computers.asJson)
-      .flatMap(json => blocker.blockOn(F.delay {
-        Files.write(filePath, json.toString().getBytes(ComputersFileCharset))
-      }))
+    for {
+      computers <- fetchAll()
+      computers <- computers.find(computer => computer.id.equals(newComputer.id))
+        .fold(
+          F.pure(computers)
+        )(_ => F.raiseError[Seq[Computer]](new IllegalArgumentException(s"A computer with id ${newComputer.id.toString} already exists")))
+        .map(computers => computers.appended(newComputer))
+        .map(computers => computers.asJson)
+      _ <- blocker.blockOn(F.delay {
+        Files.write(filePath, computers.toString().getBytes(ComputersFileCharset))
+      })
+    } yield ()
   }
 }
